@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SPARKY BOT — by Aswin Sparky</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cyan:    #00d4ff;
+      --cyan-dim: rgba(0,212,255,0.12);
+      --violet:  #7000ff;
+      --violet-dim: rgba(112,0,255,0.12);
+      --green:   #00ffaa;
+      --red:     #ff3a5c;
+      --ink:     #05050d;
+      --surface: rgba(14,14,26,0.82);
+      --glass:   rgba(255,255,255,0.04);
+      --rim:     rgba(255,255,255,0.08);
+      --rim-hi:  rgba(0,212,255,0.35);
+      --fg:      #f0f0ff;
+      --muted:   #7070a0;
+      --shadow:  0 24px 64px rgba(0,0,0,0.55);
+      --r-sm:    14px;
+      --r-md:    20px;
+      --r-lg:    28px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--ink);
+      color: var(--fg);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      padding: 24px 16px;
+    }
+
+    /* ── Canvas ── */
+    canvas#bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: .55;
+      pointer-events: none;
+    }
+
+    /* ── Orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    .orb-a {
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(0,212,255,0.18) 0%, transparent 70%);
+      top: -120px; left: -120px;
+      animation: orbA 18s ease-in-out infinite;
+    }
+    .orb-b {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, rgba(112,0,255,0.14) 0%, transparent 70%);
+      bottom: -160px; right: -120px;
+      animation: orbB 22s ease-in-out infinite;
+    }
+    @keyframes orbA {
+      0%,100% { transform: translate(0,0) scale(1); }
+      40%      { transform: translate(60px,80px) scale(1.12); }
+      70%      { transform: translate(-30px,40px) scale(0.95); }
+    }
+    @keyframes orbB {
+      0%,100% { transform: translate(0,0) scale(1); }
+      35%      { transform: translate(-70px,-50px) scale(1.08); }
+      65%      { transform: translate(40px,30px) scale(1.15); }
+    }
+
+    /* ── Wrap ── */
+    .wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      animation: revealUp .65s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes revealUp {
+      from { opacity:0; transform:translateY(48px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)    scale(1);   }
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);
+      padding: 80px 36px 40px;
+      text-align: center;
+      position: relative;
+      /* overflow: hidden; */
+      transition: border-color .3s;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, var(--cyan-dim) 0%, transparent 55%, var(--violet-dim) 100%);
+      opacity: .5;
+      pointer-events: none;
+    }
+
+    /* ── Avatar ── */
+    .avatar-wrap {
+      position: absolute;
+      top: -58px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    .avatar-ring {
+      width: 116px;
+      height: 116px;
+      border-radius: 30px;
+      background: conic-gradient(from 180deg, var(--cyan), var(--violet), var(--cyan));
+      padding: 3px;
+      box-shadow: 0 0 40px rgba(0,212,255,.35), 0 12px 40px rgba(0,0,0,.5);
+      animation: floatY 3.5s ease-in-out infinite;
+    }
+    @keyframes floatY {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    .avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 27px;
+      overflow: hidden;
+      background: var(--ink);
+    }
+    .avatar-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Heading ── */
+    .title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      background: linear-gradient(135deg, var(--cyan) 0%, #a78bfa 60%, var(--violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
+      margin-bottom: 4px;
+      position: relative;
+    }
+    .subtitle {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    /* ── Input Group ── */
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-align: left;
+    }
+    .input-row {
+      display: flex;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 15px 18px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-right: none;
+      border-radius: var(--r-sm) 0 0 var(--r-sm);
+      color: var(--fg);
+      font-size: 16px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      -webkit-appearance: none;
+    }
+    .input-row input:focus {
+      border-color: var(--cyan);
+      box-shadow: inset 0 0 0 1px rgba(0,212,255,.35);
+    }
+    .input-row input::placeholder { color: var(--muted); }
+    .pair-btn {
+      padding: 0 22px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border: none;
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: filter .25s, transform .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .pair-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background .2s;
+    }
+    .pair-btn:hover::after { background: rgba(255,255,255,.1); }
+    .pair-btn:hover { filter: brightness(1.12); }
+    .pair-btn:active { transform: scale(.97); }
+
+    /* ── Info ── */
+    .info {
+      min-height: 28px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      color: var(--muted);
+      transition: color .2s;
+    }
+    .info .code-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,212,255,.08);
+      border: 1px solid rgba(0,212,255,.25);
+      border-radius: 10px;
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--cyan);
+      font-family: 'Syne', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      transition: background .2s, transform .15s;
+      animation: popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .info .code-chip:hover { background: rgba(0,212,255,.14); transform: scale(1.04); }
+    @keyframes popIn {
+      from { opacity:0; transform: scale(.8); }
+      to   { opacity:1; transform: scale(1);  }
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--rim);
+      margin: 0 0 24px;
+      position: relative;
+    }
+
+    /* ── Actions ── */
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+    .row2    { display: flex; gap: 10px; }
+
+    .btn-ghost {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-sm);
+      color: var(--fg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .22s, border-color .22s, color .22s, transform .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.07);
+      border-color: var(--rim-hi);
+      color: var(--cyan);
+    }
+    .btn-ghost:active { transform: scale(.97); }
+
+    .btn-settings {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-sm);
+      color: var(--fg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: background .22s, border-color .22s, color .22s, transform .15s;
+    }
+    .btn-settings:hover {
+      background: rgba(112,0,255,.1);
+      border-color: rgba(112,0,255,.4);
+      color: #c4b5fd;
+    }
+    .btn-settings:active { transform: scale(.97); }
+
+    /* ── Status pill ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform: scale(1); }
+      50%      { opacity:.5; transform: scale(.75); }
+    }
+    .status-text {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,255,170,.12);
+      border: 1px solid rgba(0,255,170,.35);
+      color: var(--green);
+      padding: 11px 22px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity .3s, transform .3s;
+      letter-spacing: .04em;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Card exit ── */
+    .card.exiting {
+      animation: cardExit .4s cubic-bezier(.22,.68,0,1.2) forwards;
+    }
+    @keyframes cardExit {
+      to { opacity:0; transform: scale(.96) translateY(12px); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 420px) {
+      .card { padding: 72px 24px 32px; }
+      .avatar-ring { width: 96px; height: 96px; border-radius: 24px; }
+      .avatar-inner { border-radius: 21px; }
+      .avatar-wrap { top: -48px; }
+      .title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background canvas for grid -->
+<canvas id="bg"></canvas>
+<div class="orb orb-a" aria-hidden="true"></div>
+<div class="orb orb-b" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="card" id="mainCard">
+    <div class="avatar-wrap" aria-hidden="true">
+      <div class="avatar-ring">
+        <div class="avatar-inner">
+          <img src="https://url.aswinsparky.qzz.io/5ftLiA.jpg" alt="Sparky Bot avatar" loading="eager" />
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="pulse-dot"></span>
+      <span class="status-text">ONLINE</span>
+    </div>
+
+    <h1 class="title">SPARKY BOT</h1>
+    <p class="subtitle">by Aswin Sparky</p>
+
+    <label class="field-label" for="number">WhatsApp Number</label>
+    <div class="input-row">
+      <input
+        id="number"
+        type="tel"
+        inputmode="numeric"
+        placeholder="917012xxxxxx"
+        autocomplete="tel"
+        aria-label="WhatsApp number"
+      />
+      <button class="pair-btn" id="submitBtn" aria-label="Get pairing code">Pair</button>
+    </div>
+
+    <div class="info" id="infoArea" aria-live="polite"></div>
+
+    <div class="divider"></div>
+
+    <div class="actions">
+      <div class="row2">
+        <button class="btn-ghost" id="joinBtn">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i> Join Channel
+        </button>
+        <button class="btn-ghost" id="clearBtn">
+          <i class="fas fa-xmark" aria-hidden="true"></i> Clear
+        </button>
+      </div>
+      <a href="/settings" class="btn-settings">
+        <i class="fas fa-sliders" aria-hidden="true"></i> Settings Panel
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* ── Grid canvas ── */
+  (function(){
+    const c = document.getElementById('bg');
+    const ctx = c.getContext('2d');
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+      ctx.lineWidth = 1;
+      const sz = 52;
+      for(let x=0;x<c.width+sz;x+=sz){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke(); }
+      for(let y=0;y<c.height+sz;y+=sz){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke(); }
+    }
+    function resize(){ c.width = window.innerWidth; c.height = window.innerHeight; draw(); }
+    resize();
+    
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 100);
+    });
+  })();
+
+  /* ── State ── */
+  const infoArea  = document.getElementById('infoArea');
+  const submitBtn = document.getElementById('submitBtn');
+  const numInput  = document.getElementById('number');
+  const toast     = document.getElementById('toast');
+  const mainCard  = document.getElementById('mainCard');
+  const channelURL = 'https://whatsapp.com/channel/0029Va9ZOf36rsR1Ym7O2x00';
+  let lastCode = '';
+
+  /* ── Toast helper ── */
+  let toastTimer;
+  function showToast(msg) {
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  /* ── Pair ── */
+  submitBtn.addEventListener('click', async () => {
+    const clean = numInput.value.replace(/\D/g, '');
+    if (!clean || clean.length < 11) {
+      infoArea.innerHTML = '<span style="color:var(--red)">⚠ Enter a valid number</span>';
+      numInput.focus();
+      return;
+    }
+    numInput.value = '+' + clean;
+    infoArea.innerHTML = '<span style="color:var(--muted)">Fetching code…</span>';
+    submitBtn.disabled = true;
+
+    try {
+      const res  = await fetch(`/code?number=${clean}`);
+      const data = await res.json();
+      const code = data.code || 'UNAVAILABLE';
+      lastCode = code;
+      infoArea.innerHTML = `
+        <span class="code-chip" role="button" tabindex="0" aria-label="Copy code ${code}" onclick="copyCode()" onkeydown="if(event.key==='Enter')copyCode()">
+          ${code} <i class="fas fa-copy" style="font-size:13px;opacity:.7"></i>
+        </span>`;
+    } catch {
+      infoArea.innerHTML = '<span style="color:var(--red)">⚠ Could not reach server</span>';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  function copyCode() {
+    if (!lastCode) return;
+    navigator.clipboard?.writeText(lastCode).then(() => showToast('✓ Code copied!')).catch(() => showToast('Copy failed'));
+  }
+
+  /* ── Clear ── */
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    numInput.value = '';
+    infoArea.innerHTML = '';
+    lastCode = '';
+    numInput.focus();
+  });
+
+  /* ── Join Channel ── */
+  document.getElementById('joinBtn').addEventListener('click', () => {
+    mainCard.classList.add('exiting');
+    setTimeout(() => {
+      const opened = window.open(channelURL, '_blank', 'noopener,noreferrer');
+      if (!opened) window.location.href = channelURL;
+      mainCard.classList.remove('exiting');
+    }, 380);
+  });
+
+  /* ── Enter key ── */
+  numInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitBtn.click(); });
+</script>
+</body>
+</html>

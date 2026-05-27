@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SPARKY BOT — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --cyan:        #00d4ff;
+      --cyan-dim:    rgba(0,212,255,0.10);
+      --cyan-rim:    rgba(0,212,255,0.28);
+      --violet:      #7000ff;
+      --violet-dim:  rgba(112,0,255,0.10);
+      --green:       #00ffaa;
+      --red:         #ff3a5c;
+      --ink:         #05050d;
+      --surface:     rgba(12,12,24,0.86);
+      --glass:       rgba(255,255,255,0.04);
+      --rim:         rgba(255,255,255,0.08);
+      --rim-hi:      rgba(0,212,255,0.3);
+      --fg:          #f0f0ff;
+      --muted:       #6a6a96;
+      --shadow:      0 24px 64px rgba(0,0,0,0.6);
+      --r-sm:        12px;
+      --r-md:        18px;
+      --r-lg:        24px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--ink);
+      color: var(--fg);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background ── */
+    canvas#bg {
+      position: fixed; inset:0;
+      z-index:0; opacity:.45;
+      pointer-events:none;
+    }
+    .orb {
+      position:fixed; border-radius:50%;
+      filter:blur(100px); pointer-events:none; z-index:0; will-change:transform;
+    }
+    .orb-a {
+      width:500px; height:500px;
+      background: radial-gradient(circle, rgba(0,212,255,0.16) 0%, transparent 70%);
+      top:-140px; left:-100px;
+      animation: orbA 20s ease-in-out infinite;
+    }
+    .orb-b {
+      width:560px; height:560px;
+      background: radial-gradient(circle, rgba(112,0,255,0.12) 0%, transparent 70%);
+      bottom:-160px; right:-100px;
+      animation: orbB 25s ease-in-out infinite;
+    }
+    @keyframes orbA {
+      0%,100%{ transform:translate(0,0) scale(1); }
+      50%    { transform:translate(60px,80px) scale(1.1); }
+    }
+    @keyframes orbB {
+      0%,100%{ transform:translate(0,0) scale(1); }
+      50%    { transform:translate(-60px,-60px) scale(1.12); }
+    }
+
+    /* ── Loading overlay ── */
+    .loading-overlay {
+      position:fixed; inset:0;
+      background: var(--ink);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+      transition: opacity .4s ease;
+    }
+    .loading-overlay.hide { opacity:0; pointer-events:none; }
+    .spinner {
+      width:40px; height:40px;
+      border:2.5px solid rgba(0,212,255,.15);
+      border-top-color: var(--cyan);
+      border-radius:50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Container ── */
+    .container {
+      position:relative; z-index:2;
+      max-width:520px;
+      margin:0 auto;
+      padding:24px 20px 60px;
+      min-height:100dvh;
+    }
+
+    /* ══════════════════════════════
+       LOGIN SCREEN
+    ══════════════════════════════ */
+    .login-screen {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:100dvh;
+      gap:16px;
+      animation: fadeUp .5s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(32px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .login-card {
+      width:100%;
+      background: var(--surface);
+      backdrop-filter: blur(32px) saturate(160%);
+      -webkit-backdrop-filter: blur(32px) saturate(160%);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-lg);
+      padding: 44px 36px 40px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, var(--cyan-dim), transparent 55%, var(--violet-dim));
+      pointer-events:none;
+    }
+
+    .logo { text-align:center; margin-bottom:36px; position:relative; }
+    .logo-icon {
+      width:76px; height:76px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border-radius: 22px;
+      display:flex; align-items:center; justify-content:center;
+      margin: 0 auto 16px;
+      font-size:32px;
+      box-shadow: 0 0 40px rgba(0,212,255,.3), 0 12px 32px rgba(0,0,0,.4);
+      animation: floatY 3.5s ease-in-out infinite;
+    }
+    @keyframes floatY {
+      0%,100%{ transform:translateY(0); }
+      50%    { transform:translateY(-10px); }
+    }
+    .logo h1 {
+      font-family:'Syne', sans-serif;
+      font-size:22px; font-weight:800;
+      background: linear-gradient(135deg, var(--cyan), #c4b5fd 55%, var(--violet));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+
+    /* ── Form ── */
+    .field { margin-bottom:20px; position:relative; }
+    .field label {
+      display:block;
+      font-size:11px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.08em;
+      color:var(--muted); margin-bottom:8px;
+    }
+    .field input {
+      width:100%;
+      padding:15px 18px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-sm);
+      color: var(--fg);
+      font-size:16px;
+      font-family:'DM Sans', sans-serif;
+      outline:none;
+      transition: border-color .25s, box-shadow .25s;
+      -webkit-appearance:none;
+    }
+    .field input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,212,255,.08);
+    }
+    .field input::placeholder { color:var(--muted); }
+
+    .btn-primary {
+      width:100%;
+      padding:15px 24px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border:none; border-radius: var(--r-sm);
+      color:#fff;
+      font-family:'Syne', sans-serif;
+      font-size:15px; font-weight:700; letter-spacing:.04em;
+      cursor:pointer;
+      transition: filter .25s, transform .15s, box-shadow .25s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      position:relative; overflow:hidden;
+    }
+    .btn-primary::after {
+      content:'';
+      position:absolute; inset:0;
+      background:rgba(255,255,255,0);
+      transition: background .2s;
+    }
+    .btn-primary:hover::after { background:rgba(255,255,255,.08); }
+    .btn-primary:hover { filter:brightness(1.1); box-shadow:0 8px 28px rgba(0,212,255,.3); }
+    .btn-primary:active { transform:scale(.97); }
+    .btn-primary:disabled { opacity:.55; cursor:not-allowed; filter:none; }
+    .btn-spinner {
+      display:none;
+      width:18px; height:18px;
+      border:2px solid rgba(255,255,255,.3);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+    }
+    .btn-primary.loading .btn-spinner { display:block; }
+    .btn-primary.loading .btn-text { opacity:.7; }
+
+    .error-box {
+      margin-top:16px;
+      background: rgba(255,58,92,.09);
+      border:1px solid rgba(255,58,92,.35);
+      color: var(--red);
+      padding:11px 16px;
+      border-radius: var(--r-sm);
+      font-size:13px; font-weight:500;
+      display:none;
+      animation: shake .4s ease-out;
+    }
+    .error-box.show { display:block; }
+    @keyframes shake {
+      0%,100%{ transform:translateX(0); }
+      25%    { transform:translateX(-8px); }
+      75%    { transform:translateX(8px); }
+    }
+
+    .hint {
+      color:var(--muted); font-size:12px;
+      text-align:center; line-height:1.5;
+    }
+
+    /* ══════════════════════════════
+       SETTINGS SCREEN
+    ══════════════════════════════ */
+    .settings-screen { display:none; animation:fadeUp .4s ease both; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 20px 0 24px;
+      border-bottom: 1px solid var(--rim);
+      margin-bottom:28px;
+      position:sticky; top:0; z-index:10;
+      background: rgba(5,5,13,.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .topbar-left h2 {
+      font-family:'Syne', sans-serif;
+      font-size:22px; font-weight:800;
+      background: linear-gradient(135deg, var(--fg), var(--muted));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .topbar-left p {
+      font-size:12px; color:var(--muted); margin-top:2px;
+    }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+
+    .user-chip {
+      display:flex; align-items:center; gap:7px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-radius:50px;
+      padding: 6px 12px 6px 8px;
+      font-size:13px; font-weight:500;
+    }
+    .user-dot {
+      width:24px; height:24px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px;
+    }
+
+    .btn-logout {
+      background:transparent;
+      border:1px solid var(--rim);
+      color:var(--muted);
+      padding:7px 14px;
+      border-radius:50px;
+      font-size:13px; font-weight:500;
+      cursor:pointer;
+      transition: border-color .2s, color .2s;
+      font-family:'DM Sans', sans-serif;
+    }
+    .btn-logout:hover { border-color:var(--red); color:var(--red); }
+
+    /* ── Settings grid ── */
+    .settings-grid {
+      display:flex; flex-direction:column; gap:12px;
+    }
+
+    /* ── Setting card ── */
+    .setting-card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-md);
+      padding: 18px 20px;
+      transition: border-color .25s, transform .2s, box-shadow .25s;
+      animation: cardIn .35s ease both;
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .setting-card:hover {
+      border-color: var(--rim-hi);
+      transform: translateX(3px);
+      box-shadow: 0 4px 24px rgba(0,212,255,.06);
+    }
+
+    .card-header {
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .card-left {
+      display:flex; align-items:center; gap:14px; flex:1; min-width:0;
+    }
+    .card-icon {
+      width:42px; height:42px;
+      border-radius:12px;
+      background: linear-gradient(135deg, rgba(0,212,255,.14), rgba(112,0,255,.14));
+      border: 1px solid var(--rim);
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px;
+      flex-shrink:0;
+    }
+    .card-text { min-width:0; }
+    .card-text h3 { font-size:15px; font-weight:600; line-height:1.2; }
+    .card-text p  { font-size:12px; color:var(--muted); margin-top:2px; line-height:1.3; }
+
+    /* ── Toggle ── */
+    .toggle {
+      width:50px; height:28px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--rim);
+      border-radius:14px;
+      position:relative;
+      cursor:pointer;
+      transition: background .25s, border-color .25s, box-shadow .25s;
+      flex-shrink:0;
+    }
+    .toggle.active {
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border-color: transparent;
+      box-shadow: 0 0 14px rgba(0,212,255,.35);
+    }
+    .toggle-ball {
+      position:absolute;
+      top:3px; left:3px;
+      width:20px; height:20px;
+      background:#fff;
+      border-radius:50%;
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    }
+    .toggle.active .toggle-ball { transform:translateX(22px); }
+
+    /* ── Inline input ── */
+    .card-input {
+      margin-top:14px;
+    }
+    .card-input input,
+    .card-input select {
+      width:100%;
+      padding:11px 14px;
+      background: var(--glass);
+      border: 1px solid var(--rim);
+      border-radius: var(--r-sm);
+      color: var(--fg);
+      font-size:14px;
+      font-family:'DM Sans', sans-serif;
+      outline:none;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+    .card-input input:focus,
+    .card-input select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,212,255,.08);
+    }
+    .card-input select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236a6a96' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position: right 14px center;
+      padding-right:36px;
+    }
+    .card-input select option { background: #0d0d1a; }
+
+    /* ── Save toast ── */
+    .save-toast {
+      position:fixed;
+      bottom:28px; left:50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,255,170,.1);
+      border:1px solid rgba(0,255,170,.3);
+      color: var(--green);
+      padding:10px 22px;
+      border-radius:50px;
+      font-size:13px; font-weight:600;
+      letter-spacing:.04em;
+      opacity:0; pointer-events:none; z-index:1000;
+      transition: opacity .3s, transform .3s;
+    }
+    .save-toast.show {
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width:480px) {
+      .container { padding:16px 16px 60px; }
+      .login-card { padding:36px 24px 32px; }
+      .topbar { padding:16px 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="orb orb-a" aria-hidden="true"></div>
+<div class="orb orb-b" aria-hidden="true"></div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="container">
+  <!-- ── Login ── -->
+  <section class="login-screen" id="loginScreen" aria-label="Login">
+    <div class="login-card">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">⚙️</div>
+        <h1>SPARKY BOT</h1>
+        <p>Configure your bot preferences</p>
+      </div>
+
+      <div class="field">
+        <label for="phoneNumber">WhatsApp Number</label>
+        <input type="text" id="phoneNumber" placeholder="e.g. 917012xxxxxx" autocomplete="off" inputmode="numeric" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+      </div>
+
+      <button class="btn-primary" id="loginBtn" onclick="login()">
+        <div class="btn-spinner"></div>
+        <span class="btn-text">Access Settings</span>
+      </button>
+
+      <div class="error-box" id="errorMessage" role="alert"></div>
+    </div>
+
+    <p class="hint">Your password was sent in the WhatsApp startup message</p>
+  </section>
+
+  <!-- ── Settings ── -->
+  <section class="settings-screen" id="settingsScreen" aria-label="Settings">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Settings</h2>
+        <p>Bot configuration panel</p>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="user-dot" aria-hidden="true">👤</div>
+          <span id="userNumber">…</span>
+        </div>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
+      </div>
+    </header>
+
+    <div class="settings-grid" id="settingsGrid" role="list">
+      <!-- cards inserted by JS -->
+    </div>
+  </section>
+</div>
+
+<div class="save-toast" id="saveToast" role="status" aria-live="polite">✓ Saved</div>
+
+<script>
+  /* ── Grid canvas ── */
+  (function(){
+    const c = document.getElementById('bg');
+    const ctx = c.getContext('2d');
+    function resize(){ c.width=window.innerWidth; c.height=window.innerHeight; draw(); }
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1;
+      const sz=52;
+      for(let x=0;x<c.width+sz;x+=sz){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke(); }
+      for(let y=0;y<c.height+sz;y+=sz){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke(); }
+    }
+    resize();
+    window.addEventListener('resize',resize);
+  })();
+
+  /* ── State ── */
+  let sessionId    = localStorage.getItem('settings_sessionId');
+  let currentSettings = {};
+  let userNumber   = '';
+
+  /* ── Definitions ── */
+  const settingDefinitions = {
+    AUTO_STATUS_VIEW:     { icon:'👁️',  title:'Auto Status View',    description:'Automatically view status updates',      type:'toggle' },
+    STATUS_REACTION:      { icon:'😀',  title:'Status Reaction',      description:'Auto react to status updates',            type:'toggle' },
+    STATUS_REACTION_EMOJI:{ icon:'🎭',  title:'Reaction Emojis',      description:'Comma-separated emoji list',              type:'text',   placeholder:'🍉,🍓,🎀,💀,…' },
+    STATUS_REPLY:         { icon:'💬',  title:'Status Reply',          description:'Auto reply to status updates',            type:'toggle' },
+    STATUS_REPLY_MSG:     { icon:'📝',  title:'Reply Message',         description:'Message sent on status reply',            type:'text',   placeholder:'Your status reply message…' },
+    READ_MESSAGES:        { icon:'✓',   title:'Read Messages',         description:'Auto read incoming messages',             type:'toggle' },
+    REJECT_CALL:          { icon:'📞',  title:'Reject Calls',          description:'Auto reject incoming calls',              type:'toggle' },
+    REJECT_CALL_MSG:      { icon:'📵',  title:'Rejection Message',     description:'Message when rejecting calls',            type:'text',   placeholder:'Call rejection message…' },
+    WORK_TYPE:            { icon:'🌐',  title:'Work Type',             description:'Bot visibility mode',                    type:'select', options:['public','private'] },
+    BOT_INFO:             { icon:'🤖',  title:'Bot Info',              description:'Name; Owner; Image URL',                 type:'text',   placeholder:'BOT-NAME;OWNER;https://…' },
+    LANGUAGE:             { icon:'🗣️', title:'Language',              description:'Bot response language',                  type:'select', options:['english','malayalam','manglish'] },
+    STICKER_DATA:         { icon:'🔖',  title:'Sticker Data',          description:'Packname; Author',                        type:'text',   placeholder:'X BOT MD;ASWIN SPARKY' },
+    AUDIO_DATA:           { icon:'🎵',  title:'Audio Data',            description:'Title; Author; Image URL',                type:'text',   placeholder:'X BOT MD;ASWIN SPARKY;https://…' },
+    MENU_TYPE:            { icon:'📜',  title:'Menu Type',             description:'Select your menu style',                  type:'select', options:['video','image','big','small','document','text','payment'] },
+    PING:                 { icon:'🏓',  title:'Ping Message',          description:'Custom ping response text',               type:'text',   placeholder:'Latency' },
+    SUDO:                 { icon:'👑',  title:'Sudo Users',            description:'Comma-separated list of admin numbers',   type:'text',   placeholder:'917012984396,…' },
+    HANDLERS:             { icon:'⌨️',  title:'Handlers',              description:'Bot command prefix',                     type:'text',   placeholder:'false (for none) or . , !' },
+  };
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', async () => {
+    hideLoading();
+    if (sessionId) {
+      const valid = await checkSession();
+      if (valid) { showSettings(); loadSettings(); }
+      else showLogin();
+    } else showLogin();
+  });
+
+  const loading = document.getElementById('loadingOverlay');
+  function showLoading(){ loading.classList.remove('hide'); }
+  function hideLoading(){ loading.classList.add('hide'); }
+
+  function showLogin(){
+    document.getElementById('loginScreen').style.display  = 'flex';
+    document.getElementById('settingsScreen').style.display = 'none';
+  }
+  function showSettings(){
+    document.getElementById('loginScreen').style.display  = 'none';
+    document.getElementById('settingsScreen').style.display = 'block';
+  }
+
+  /* ── Auth ── */
+  async function login(){
+    const number   = document.getElementById('phoneNumber').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const btn      = document.getElementById('loginBtn');
+    const errDiv   = document.getElementById('errorMessage');
+
+    if (!number || !password){ showError('Please enter both number and password'); return; }
+
+    btn.classList.add('loading'); btn.disabled = true;
+    errDiv.classList.remove('show');
+
+    try {
+      const res  = await fetch('/settings/api/auth', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({number, password})
+      });
+      const data = await res.json();
+      if (data.success){
+        sessionId  = data.sessionId;
+        userNumber = data.userNumber;
+        localStorage.setItem('settings_sessionId', sessionId);
+        document.getElementById('userNumber').textContent = '+' + userNumber;
+        showSettings(); loadSettings();
+      } else showError(data.error || 'Invalid credentials');
+    } catch { showError('Connection failed. Please try again.'); }
+    finally  { btn.classList.remove('loading'); btn.disabled = false; }
+  }
+
+  function showError(msg){
+    const d = document.getElementById('errorMessage');
+    d.textContent = msg; d.classList.add('show');
+    setTimeout(()=>d.classList.remove('show'), 5000);
+  }
+
+  async function checkSession(){
+    try {
+      const res  = await fetch('/settings/api/check-session',{ headers:{'X-Session-Id':sessionId} });
+      const data = await res.json();
+      if (data.success){ userNumber = data.userNumber; document.getElementById('userNumber').textContent = '+'+userNumber; }
+      return data.success;
+    } catch { return false; }
+  }
+
+  async function loadSettings(){
+    showLoading();
+    try {
+      const res  = await fetch('/settings/api/settings',{ headers:{'X-Session-Id':sessionId} });
+      const data = await res.json();
+      if (data.success){ currentSettings = data.settings; renderSettings(); }
+    } catch(e){ console.error(e); }
+    finally { hideLoading(); }
+  }
+
+  function renderSettings(){
+    const grid = document.getElementById('settingsGrid');
+    grid.innerHTML = '';
+    Object.entries(settingDefinitions).forEach(([key, def], i) => {
+      const card = createCard(key, def, currentSettings[key]);
+      card.style.animationDelay = `${i * 40}ms`;
+      grid.appendChild(card);
+    });
+  }
+
+  function createCard(key, def, value){
+    const card = document.createElement('div');
+    card.className = 'setting-card';
+    card.setAttribute('role','listitem');
+
+    let ctrl = '';
+    if (def.type === 'toggle'){
+      const on = value === true || value === 'true';
+      ctrl = `<div class="toggle ${on?'active':''}" role="switch" aria-checked="${on}" tabindex="0"
+                   onclick="toggleSetting('${key}',this)"
+                   onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSetting('${key}',this)}">
+                <div class="toggle-ball"></div>
+              </div>`;
+    } else if (def.type === 'text'){
+      ctrl = `<div class="card-input">
+                <input type="text" value="${value||''}" placeholder="${def.placeholder||''}"
+                       onchange="updateSetting('${key}',this.value)" aria-label="${def.title}" />
+              </div>`;
+    } else if (def.type === 'select'){
+      const opts = def.options.map(o=>
+        `<option value="${o}" ${value===o?'selected':''}>${o.charAt(0).toUpperCase()+o.slice(1)}</option>`
+      ).join('');
+      ctrl = `<div class="card-input">
+                <select onchange="updateSetting('${key}',this.value)" aria-label="${def.title}">${opts}</select>
+              </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-left">
+          <div class="card-icon" aria-hidden="true">${def.icon}</div>
+          <div class="card-text">
+            <h3>${def.title}</h3>
+            <p>${def.description}</p>
+          </div>
+        </div>
+        ${def.type==='toggle' ? ctrl : ''}
+      </div>
+      ${def.type!=='toggle' ? ctrl : ''}
+    `;
+    return card;
+  }
+
+  async function toggleSetting(key, el){
+    const wasActive = el.classList.contains('active');
+    const newVal = !wasActive;
+    el.classList.toggle('active');
+    el.setAttribute('aria-checked', String(newVal));
+    await updateSetting(key, newVal);
+  }
+
+  async function updateSetting(key, value){
+    try {
+      const res  = await fetch('/settings/api/settings',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Session-Id':sessionId},
+        body: JSON.stringify({[key]:value})
+      });
+      const data = await res.json();
+      if (data.success){ currentSettings[key]=value; showSaveToast(); }
+    } catch(e){ console.error(e); }
+  }
+
+  let toastTimer;
+  function showSaveToast(){
+    clearTimeout(toastTimer);
+    const t = document.getElementById('saveToast');
+    t.classList.add('show');
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2000);
+  }
+
+  async function logout(){
+    try { await fetch('/settings/api/logout',{method:'POST',headers:{'X-Session-Id':sessionId}}); }
+    catch(e){ console.error(e); }
+    localStorage.removeItem('settings_sessionId');
+    sessionId = null; userNumber = '';
+    showLogin();
+  }
+
+  /* ── Enter key on login ── */
+  document.getElementById('password')?.addEventListener('keypress', e=>{ if(e.key==='Enter') login(); });
+</script>
+</body>
+</html>
