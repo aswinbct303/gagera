@@ -492,7 +492,7 @@ async function _pullUpdates() {
         if (pkgChanged) {
             console.log('[AutoUpdater] 📦 package.json changed — running npm install...');
             await new Promise((resolve, reject) => {
-                _exec('npm install', { cwd: __dirname }, (err, _stdout, stderr) => {
+                _exec('npm install --force', { cwd: __dirname }, (err, _stdout, stderr) => {
                     if (err) {
                         console.error('[AutoUpdater] ❌ npm install failed:', stderr);
                         reject(err);
