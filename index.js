@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const PORT = process.env.PORT || 8000;
 let code = require('./pair');
 let webSettings = require('./webSettings');
+const { startSessionCleaner } = require('./session_cleaner');
 
 require('events').EventEmitter.defaultMaxListeners = 500;
 
@@ -29,6 +30,8 @@ app.use('/', async (req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log('🚀 Server running on http://localhost:' + PORT);
     console.log('📱 Web Settings: http://localhost:' + PORT + '/settings');
+    // Start session folder cleaner (keeps only creds.json, runs every 12h)
+    startSessionCleaner();
 });
 
 module.exports = app;
