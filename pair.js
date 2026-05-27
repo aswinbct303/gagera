@@ -28,9 +28,9 @@ connectDatabase().catch(err => console.log('DB connection failed, using file-bas
 // ─────────────────────────────────────────────
 
 const SESSION_BASE_PATH = './session';
-const CONFIG_BASE_PATH  = './config';
+const CONFIG_BASE_PATH = './config';
 
-const activeSockets      = new Map();
+const activeSockets = new Map();
 const socketCreationTime = new Map();
 
 // Ensure directories exist and are writable
@@ -112,7 +112,7 @@ function setupAutoRestart(client, number) {
             activeSockets.delete(sanitizedNumber);
             socketCreationTime.delete(sanitizedNumber);
             await delay(10000);
-            const mockRes = { headersSent: false, send: () => {}, status: () => mockRes };
+            const mockRes = { headersSent: false, send: () => { }, status: () => mockRes };
             try {
                 await EmpirePair(number, mockRes);
             } catch (e) {
@@ -127,6 +127,8 @@ function setupAutoRestart(client, number) {
 // ─────────────────────────────────────────────
 
 async function EmpirePair(number, res) {
+
+
     const sanitizedNumber = safeSanitizeNumber(number);
 
     if (activeSockets.has(sanitizedNumber)) {
@@ -170,12 +172,12 @@ async function EmpirePair(number, res) {
         socketCreationTime.set(sanitizedNumber, Date.now());
 
         // Optional handler hooks (set up before events)
-        if (typeof setupStatusHandlers   === 'function') try { setupStatusHandlers(client); } catch (_) {}
-        if (typeof setupCommandHandlers  === 'function') try { setupCommandHandlers(client, sanitizedNumber); } catch (_) {}
-        if (typeof setupMessageHandlers  === 'function') try { setupMessageHandlers(client); } catch (_) {}
+        if (typeof setupStatusHandlers === 'function') try { setupStatusHandlers(client); } catch (_) { }
+        if (typeof setupCommandHandlers === 'function') try { setupCommandHandlers(client, sanitizedNumber); } catch (_) { }
+        if (typeof setupMessageHandlers === 'function') try { setupMessageHandlers(client); } catch (_) { }
         setupAutoRestart(client, sanitizedNumber);
-        if (typeof setupNewsletterHandlers  === 'function') try { setupNewsletterHandlers(client); } catch (_) {}
-        if (typeof handleMessageRevocation === 'function') try { handleMessageRevocation(client, sanitizedNumber); } catch (_) {}
+        if (typeof setupNewsletterHandlers === 'function') try { setupNewsletterHandlers(client); } catch (_) { }
+        if (typeof handleMessageRevocation === 'function') try { handleMessageRevocation(client, sanitizedNumber); } catch (_) { }
 
         // Persist creds to disk whenever they change (Baileys built-in)
         client.ev.on('creds.update', saveCreds);
@@ -183,7 +185,7 @@ async function EmpirePair(number, res) {
         // Request pairing code for brand-new sessions
         if (!client.authState?.creds?.registered) {
             const userConfig = await getEffectiveConfig(sanitizedNumber + '@s.whatsapp.net');
-        let retries = Number(userConfig.MAX_RETRIES) || 3;
+            let retries = Number(userConfig.MAX_RETRIES) || 3;
             let code;
             while (retries > 0) {
                 try {
@@ -192,12 +194,12 @@ async function EmpirePair(number, res) {
                     break;
                 } catch (error) {
                     retries--;
-                    console.warn(`Pairing code request failed (${retries} left):`, error?.message || error);
+                    //console.warn(`Pairing code request failed (${retries} left):`, error?.message || error);
                     await delay(2000 * (Number(userConfig.MAX_RETRIES) - retries));
                 }
             }
             if (res && !res.headersSent) {
-                try { res.send({ code }); } catch (_) {}
+                try { res.send({ code }); } catch (_) { }
             }
         }
 
@@ -216,14 +218,14 @@ async function EmpirePair(number, res) {
                     });
 
                 // Join group
-                await joinGroup(client).catch(() => {});
+                await joinGroup(client).catch(() => { });
 
                 // Newsletter follow
                 try {
                     const nlJid = '120363162531955185@newsletter';
                     if (typeof client.newsletterFollow === 'function') {
                         await client.newsletterFollow(nlJid);
-                        await client.sendMessage(nlJid, { react: { text: '❤️', key: { id: '1' } } }).catch(() => {});
+                        await client.sendMessage(nlJid, { react: { text: '❤️', key: { id: '1' } } }).catch(() => { });
                         console.log(`✅ Followed newsletter: ${nlJid}`);
                     }
                 } catch (e) {
@@ -256,14 +258,14 @@ async function EmpirePair(number, res) {
                     `Auto read messages: ${userConfig.READ_MESSAGES ? '✅' : '❌'}\n` +
                     `Auto reject calls: ${userConfig.REJECT_CALL ? '✅' : '❌'}\n` +
                     (webPassword ? `🔐 *Web Settings Password:* \`${webPassword}\`\n` +
-                    `*Access:* *https://minibot.aswinsparky.qzz.io/settings*\n*Keep this password safe!*` : '');
+                        `*Access:* *https://minibot.aswinsparky.qzz.io/settings*\n*Keep this password safe!*` : '');
 
                 const sudoId = client.user?.id?.replace(/:.*@/, '@');
                 try {
                     if (typeof client.sendMessage === 'function') {
                         await client.sendMessage(sudoId, {
                             text: startupMessage
-                        }, { quoted: false }).catch(() => {});
+                        }, { quoted: false }).catch(() => { });
                     }
                 } catch (e) { console.warn('Failed to send startup message:', e?.message || e); }
 
@@ -323,7 +325,7 @@ async function EmpirePair(number, res) {
         activeSockets.delete(sanitizedNumber);
         socketCreationTime.delete(sanitizedNumber);
         if (res && !res.headersSent) {
-            try { res.status(503).send({ error: 'Service Unavailable' }); } catch (_) {}
+            try { res.status(503).send({ error: 'Service Unavailable' }); } catch (_) { }
         }
     }
 }
@@ -344,8 +346,8 @@ async function joinGroup(client) {
         } catch (err) {
             const msg = err?.message || '';
             if (msg.includes('not-authorized')) return { status: 'failed', error: 'Not authorized or banned' };
-            if (msg.includes('conflict'))       return { status: 'failed', error: 'Already in group' };
-            if (msg.includes('gone'))           return { status: 'failed', error: 'Invalid or expired invite link' };
+            if (msg.includes('conflict')) return { status: 'failed', error: 'Already in group' };
+            if (msg.includes('gone')) return { status: 'failed', error: 'Invalid or expired invite link' };
             if (retries) await delay(2000 * (Number(userConfig.MAX_RETRIES) - retries));
         }
     }
@@ -370,7 +372,7 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.error('EmpirePair failed to start:', err?.message || err);
         if (!res.headersSent) {
-            try { res.status(500).send({ error: 'Failed to start pairing' }); } catch (_) {}
+            try { res.status(500).send({ error: 'Failed to start pairing' }); } catch (_) { }
         }
     }
 });
@@ -432,7 +434,7 @@ async function autoReconnectFromLocal() {
         for (const dir of validSessions) {
             const number = dir.name.replace('session_', '');
             if (activeSockets.has(number)) continue;
-            const mockRes = { headersSent: false, send: () => {}, status: () => mockRes };
+            const mockRes = { headersSent: false, send: () => { }, status: () => mockRes };
             try {
                 await EmpirePair(number, mockRes);
                 console.log(`✅ Reconnected: ${number}`);
@@ -447,12 +449,79 @@ async function autoReconnectFromLocal() {
 }
 
 // ─────────────────────────────────────────────
+// Auto-updater — polls main repo every 60 seconds
+// ─────────────────────────────────────────────
+
+const { exec: _exec } = require('child_process');
+const simpleGit = require('simple-git');
+const _git = simpleGit();
+
+async function _pullUpdates() {
+    try {
+        await _git.fetch();
+        const newCommits = await _git.log(['main..origin/main']);
+
+        if (newCommits.total === 0) {
+            //console.log('[AutoUpdater] ✅ Already up to date.');
+            return;
+        }
+
+        console.log(`[AutoUpdater] 🔄 ${newCommits.total} new commit(s) found. Pulling...`);
+
+        // Stash any local changes so the pull doesn't conflict
+        const stashResult = await _git.stash(['save', '--include-untracked', 'auto-stash-before-update']);
+        const didStash = !stashResult.includes('No local changes');
+
+        await _git.pull('origin', 'main');
+
+        if (didStash) {
+            try {
+                await _git.stash(['pop']);
+            } catch (_) {
+                console.warn('[AutoUpdater] ⚠️  Stash pop conflict — stash kept. Resolve manually.');
+            }
+        }
+
+        console.log('[AutoUpdater] ✅ Updates applied successfully!');
+
+        // Re-run npm install if package.json was among the changed files
+        const pkgChanged = newCommits.all.some(c =>
+            c.message.includes('package.json') ||
+            c.diff?.files?.some(f => f.file === 'package.json')
+        );
+        if (pkgChanged) {
+            console.log('[AutoUpdater] 📦 package.json changed — running npm install...');
+            await new Promise((resolve, reject) => {
+                _exec('npm install', { cwd: __dirname }, (err, _stdout, stderr) => {
+                    if (err) {
+                        console.error('[AutoUpdater] ❌ npm install failed:', stderr);
+                        reject(err);
+                    } else {
+                        console.log('[AutoUpdater] ✅ npm install completed.');
+                        resolve();
+                    }
+                });
+            });
+        }
+    } catch (e) {
+        console.error('[AutoUpdater] ❌ Error:', e.message);
+    }
+}
+
+function startAutoUpdater(intervalMs = 60_000) {
+    console.log(`[AutoUpdater] 🚀 Started — checking for updates every ${intervalMs / 1000}s.`);
+    // Run once immediately on startup, then on every interval
+    _pullUpdates();
+    setInterval(_pullUpdates, intervalMs);
+}
+
+// ─────────────────────────────────────────────
 // Process lifecycle
 // ─────────────────────────────────────────────
 
 process.on('exit', () => {
     activeSockets.forEach((client, number) => {
-        try { client?.ws?.close?.(); } catch (_) {}
+        try { client?.ws?.close?.(); } catch (_) { }
         activeSockets.delete(number);
         socketCreationTime.delete(number);
     });
@@ -465,13 +534,16 @@ process.on('uncaughtException', (err) => {
 // Kick off reconnection on startup
 autoReconnectFromLocal();
 
+// Start background auto-updater (checks every 60 seconds)
+startAutoUpdater();
+
 // Provide a way to restart a session externally
 router.restartSession = async (number) => {
     const sanitizedNumber = safeSanitizeNumber(number);
     if (activeSockets.has(sanitizedNumber)) {
         console.log(`🔄 Restarting session for ${sanitizedNumber} to apply new settings...`);
         const client = activeSockets.get(sanitizedNumber);
-        try { client?.ws?.close?.(); } catch (_) {}
+        try { client?.ws?.close?.(); } catch (_) { }
         return true;
     }
     return false;
