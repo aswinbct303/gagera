@@ -528,6 +528,12 @@ async function _pullUpdates() {
                 });
             });
         }
+
+        // Restart the process so the new code is loaded
+        // pm2 / nodemon / forever will automatically bring the process back up.
+        console.log('[AutoUpdater] 🔁 Restarting process to apply updates...');
+        process.exit(0);
+
     } catch (e) {
         console.error('[AutoUpdater] ❌ Error:', e.message);
     }
