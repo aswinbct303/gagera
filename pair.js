@@ -249,8 +249,8 @@ async function EmpirePair(number, res) {
                 // Startup message
                 const startupMessage =
                     `*SPARKY BOT MINI CONNECTED!*\n\n` +
-                    `_Mode: ${userConfig.WORK_TYPE}_\n_Prefix: ${globalConfig.HANDLERS}_\n_Version: ${globalConfig.VERSION}_\n` +
-                    `_Menu Type: ${globalConfig.MENU_TYPE}_\n_Language: ${userConfig.LANGUAGE}_\n_Active Bots: ${activeSockets.size}_\n\n` +
+                    `_Mode: ${userConfig.WORK_TYPE}_\n_Prefix: ${userConfig.HANDLERS}_\n_Version: ${globalConfig.VERSION}_\n` +
+                    `_Menu Type: ${userConfig.MENU_TYPE}_\n_Language: ${userConfig.LANGUAGE}_\n_Active Bots: ${activeSockets.size}_\n\n` +
                     `*Your Configurations*\n\n` +
                     `Auto status view: ${userConfig.AUTO_STATUS_VIEW ? '✅' : '❌'}\n` +
                     `Auto status reaction: ${userConfig.STATUS_REACTION ? '✅' : '❌'}\n` +
@@ -288,20 +288,45 @@ async function EmpirePair(number, res) {
                 console.error('whatsappAutomation error:', e?.message || e);
             }
 
-            if (globalConfig.DISABLE_PM && !m.isGroup) return;
-
             if (Array.isArray(importedCommands)) {
                 // Get user-specific config for command execution
                 const cmdConfig = await getEffectiveConfig(sanitizedNumber + '@s.whatsapp.net');
+
+                if (cmdConfig.DISABLE_PM && !m.isGroup) return;
+
                 for (const Sparky of importedCommands) {
                     try {
                         if (Sparky.fromMe && !m.sudo) continue;
                         const comman = m.body || '';
-                        if (Sparky.on) {
-                            Sparky.function({ m, args: m.body, client, config: cmdConfig });
-                        } else if (Sparky.name && Sparky.name.test(comman)) {
-                            const args = m.body.replace(Sparky.name, '$1').trim();
-                            Sparky.function({ m, args, client, config: cmdConfig });
+
+                        // Build a per-user command regex using the user's HANDLERS setting
+                        let cmdPattern = Sparky._baseName;
+                        if (cmdPattern) {
+                            const handler = cmdConfig.HANDLERS;
+                            let prefix;
+                            if (!handler || handler === 'false') {
+                                prefix = '^';
+                            } else if (handler.split('').length > 1 && handler[0] === handler[1]) {
+                                prefix = handler;
+                            } else if (/[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/.test(handler)) {
+                                prefix = '^[' + handler + ']';
+                            } else {
+                                prefix = handler;
+                            }
+                            const userRegex = new RegExp(`${prefix}\\s*${cmdPattern}\\s*(?!\\S)(.*)$`, 'i');
+                            if (Sparky.on) {
+                                Sparky.function({ m, args: m.body, client, config: cmdConfig });
+                            } else if (userRegex.test(comman)) {
+                                const args = comman.replace(userRegex, '$1').trim();
+                                Sparky.function({ m, args, client, config: cmdConfig });
+                            }
+                        } else {
+                            if (Sparky.on) {
+                                Sparky.function({ m, args: m.body, client, config: cmdConfig });
+                            } else if (Sparky.name && Sparky.name.test(comman)) {
+                                const args = m.body.replace(Sparky.name, '$1').trim();
+                                Sparky.function({ m, args, client, config: cmdConfig });
+                            }
                         }
                     } catch (e) {
                         console.log('Command handler error:', e);

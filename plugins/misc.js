@@ -38,7 +38,8 @@ Sparky({
 		desc: "Checks if the bot is online and responsive."
 	},
 	async ({
-		m
+		m,
+		config
 	}) => {
 		const start = new Date().getTime();
 		let pong = await m.sendMsg(m.jid, "_Checking Ping..._", {

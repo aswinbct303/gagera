@@ -55,7 +55,8 @@ Sparky({
 	},
 	async ({
 		m,
-		args
+		args,
+		config
 	}) => {
 		if (!m.quoted || !(m.quoted.message.imageMessage || m.quoted.message.videoMessage)) {
 			return await m.reply(lang.STICKER_ALERT);
@@ -89,7 +90,7 @@ Sparky({
 	});
 
 
-Sparky({
+	Sparky({
 		name: "take",
 		fromMe: isPublic,
 		category: "converters",
@@ -98,7 +99,8 @@ Sparky({
 	async ({
 		m,
 		args,
-		client
+		client,
+		config
 	}) => {
 		if (!m.quoted || !(m.quoted.message.stickerMessage || m.quoted.message.audioMessage || m.quoted.message.imageMessage || m.quoted.message.videoMessage)) return m.reply('reply to a sticker/audio');
 		await m.react('⏫');

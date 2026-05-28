@@ -23,7 +23,8 @@ Sparky({
 }, async ({
     client,
     m,
-    args
+    args,
+    config
 }) => {
     try {
         if (args) {
@@ -220,4 +221,3 @@ Sparky({
         console.log(e);
     }
 });
-
