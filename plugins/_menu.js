@@ -45,7 +45,7 @@ Sparky({
 ┃┃•  owner : ${config.BOT_INFO.split(";")[1].toLowerCase()}
 ┃┃•  mode : ${config.WORK_TYPE.toLowerCase()}
 ┃┃•  prefix : ${m.prefix}
-┃┃•  platform : SPARKY'S SERVER
+┃┃•  active bots : ${global.activeSockets ? global.activeSockets.size : 'unknown'}
 ┃┃•  date : ${date}
 ┃┃•  time : ${time}
 ┃┃•  uptime : ${await m.uptime()}

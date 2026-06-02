@@ -31,6 +31,7 @@ const SESSION_BASE_PATH = './session';
 const CONFIG_BASE_PATH = './config';
 
 const activeSockets = new Map();
+global.activeSockets = activeSockets;
 const socketCreationTime = new Map();
 
 // Ensure directories exist and are writable
