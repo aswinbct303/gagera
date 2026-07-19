@@ -66,7 +66,8 @@ Sparky({
       if (!await isUrl(args)) return await m.reply(lang.INVALID_LINK);
       await m.react('⬇️');
       const url = await yta(args);
-      await m.sendMsg(m.jid, url, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
+      const tomp3 = await convertToMp3(url);
+      await m.sendMsg(m.jid, tomp3, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
       await m.react('✅');
     } catch (error) {
       await m.react('❌');
@@ -91,7 +92,8 @@ Sparky({
       await m.react('⬇️');
       await m.reply(`Downloading ${play.title}`)
       const url = await yta(play.url);
-      await m.sendMsg(m.jid, url, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
+      const tomp3 = await convertToMp3(url);
+      await m.sendMsg(m.jid, tomp3, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
       await m.react('✅');
     } catch (error) {
       await m.react('❌');
@@ -116,7 +118,8 @@ Sparky({
       await m.react('⬇️');
       await m.reply(`Downloading ${play.title}`)
       const url = await yta(play.url);
-      await m.sendMsg(m.jid, url, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
+      const tomp3 = await convertToMp3(url);
+      await m.sendMsg(m.jid, tomp3, { quoted: m, mimetype: 'audio/mpeg' }, "audio");
       await m.react('✅');
     } catch (error) {
       await m.react('❌');
