@@ -164,9 +164,9 @@ async function EmpirePair(number, res) {
                 keys: makeCacheableSignalKeyStore(state.keys, waLogger),
             },
             printQRInTerminal: false,
-            version: [2, 3000, 1033893291],
+            //version: [2, 3000, 1033893291],
             logger: waLogger,
-            browser: Browsers.macOS('Safari'),
+            browser: ["Ubuntu", "Chrome", "20.0.04"],
         });
 
         activeSockets.set(sanitizedNumber, client);
