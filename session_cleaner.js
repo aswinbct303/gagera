@@ -84,7 +84,7 @@ const log = {
 function deleteEntry(targetPath, label) {
     try {
         fs.rmSync(targetPath, { recursive: true, force: true });
-        log.ok(`  Deleted ${label}: ${path.basename(targetPath)}`);
+        //log.ok(`  Deleted ${label}: ${path.basename(targetPath)}`);
     } catch (err) {
         log.error(`  Failed to delete ${label} "${path.basename(targetPath)}":`, err.message);
     }
@@ -147,7 +147,7 @@ function cleanSessionFolder(sessionDir) {
         deletedCount++;
     }
 
-    log.ok(`"${folderName}" — done. Deleted: ${deletedCount}, Kept: ${skippedCount}.`);
+    //log.ok(`"${folderName}" — done. Deleted: ${deletedCount}, Kept: ${skippedCount}.`);
 }
 
 /**
@@ -217,9 +217,9 @@ function runCleanup() {
  */
 function startSessionCleaner() {
     log.info(`Session cleaner initialised.`);
-    log.info(`Cron schedule: "${CRON_SCHEDULE}" — runs at 00:00 and 12:00 every day.`);
-    log.info(`Session root : ${SESSION_ROOT}`);
-    log.info(`Preserving   : ${KEEP_FILE} only.`);
+    //log.info(`Cron schedule: "${CRON_SCHEDULE}" — runs at 00:00 and 12:00 every day.`);
+    //log.info(`Session root : ${SESSION_ROOT}`);
+    //log.info(`Preserving   : ${KEEP_FILE} only.`);
 
     // ── Run immediately on startup ─────────────────────────────────────────
     log.info('Running initial cleanup on startup...');

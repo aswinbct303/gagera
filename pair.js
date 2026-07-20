@@ -109,7 +109,7 @@ function setupAutoRestart(client, number) {
             await cleanupSession(sanitizedNumber);
             console.log(`✅ Cleanup complete for ${sanitizedNumber}.`);
         } else {
-            console.log(`🔄 Connection lost for ${sanitizedNumber} (code ${statusCode}), reconnecting in 10s...`);
+            //console.log(`🔄 Connection lost for ${sanitizedNumber} (code ${statusCode}), reconnecting in 10s...`);
             activeSockets.delete(sanitizedNumber);
             socketCreationTime.delete(sanitizedNumber);
             await delay(10000);
