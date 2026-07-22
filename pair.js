@@ -9,6 +9,7 @@ const { serialize, commands: importedCommands, whatsappAutomation, callAutomatio
 const { connectDatabase, getConnectionStatus } = require('./lib/database');
 const { getEffectiveConfig, getFormattedSettings, updateUserConfig } = require('./lib/userConfig');
 const { getOrCreateWebPassword } = require('./models/UserSettings');
+const { saveSessionCreds, loadSessionCreds, deleteSessionCreds, listSavedNumbers } = require('./models/SessionCredentials');
 const globalConfig = require('./config');
 
 const {
@@ -20,8 +21,8 @@ const {
     DisconnectReason
 } = require('baileys');
 
-// Initialize database connection
-connectDatabase().catch(err => console.log('DB connection failed, using file-based config:', err.message));
+// Database connection is initiated in the startup sequence below (after process events)
+// so that autoReconnectFromLocal() always runs AFTER the DB is ready.
 
 // ─────────────────────────────────────────────
 // Paths & in-memory state
@@ -82,6 +83,11 @@ async function cleanupSession(sanitizedNumber) {
     if (fs.existsSync(sessionPath)) {
         fs.rmSync(sessionPath, { recursive: true, force: true });
         console.log(`🗑️  Removed local session folder for ${sanitizedNumber}.`);
+    }
+
+    // Delete creds from MongoDB (if DB is available)
+    if (getConnectionStatus()) {
+        await deleteSessionCreds(sanitizedNumber);
     }
 }
 
@@ -181,6 +187,7 @@ async function EmpirePair(number, res) {
         if (typeof handleMessageRevocation === 'function') try { handleMessageRevocation(client, sanitizedNumber); } catch (_) { }
 
         // Persist creds to disk whenever they change (Baileys built-in)
+        // DB is only written once on first login — not on every update
         client.ev.on('creds.update', saveCreds);
 
         // Request pairing code for brand-new sessions
@@ -209,6 +216,19 @@ async function EmpirePair(number, res) {
             if (update.connection !== 'open') return;
             try {
                 await initializePlugins();
+
+                // ── Save creds.json to MongoDB on successful connection ──
+                if (getConnectionStatus()) {
+                    try {
+                        const credsFile = path.join(sessionPath, 'creds.json');
+                        if (fs.existsSync(credsFile)) {
+                            const credsJson = JSON.parse(fs.readFileSync(credsFile, 'utf8'));
+                            await saveSessionCreds(sanitizedNumber, credsJson);
+                        }
+                    } catch (e) {
+                        console.error(`❌ Failed to save creds to DB for ${sanitizedNumber}:`, e.message);
+                    }
+                }
                 console.log(`✅ Connected: ${sanitizedNumber}`);
 
                 // Load plugins
@@ -432,42 +452,86 @@ async function initializePlugins() {
 // Auto-reconnect from local session folders on startup
 // ─────────────────────────────────────────────
 
-async function autoReconnectFromLocal() {
+async function autoReconnectFromLocal(dbConnected = false) {
     try {
-        if (!fs.existsSync(SESSION_BASE_PATH)) return;
+        const reconnectedNumbers = new Set();
 
-        const entries = fs.readdirSync(SESSION_BASE_PATH, { withFileTypes: true });
-        const sessionDirs = entries.filter(e => e.isDirectory() && e.name.startsWith('session_'));
+        // ── Step 1: Reconnect from local session folders ──────────────────
+        if (fs.existsSync(SESSION_BASE_PATH)) {
+            const entries = fs.readdirSync(SESSION_BASE_PATH, { withFileTypes: true });
+            const sessionDirs = entries.filter(e => e.isDirectory() && e.name.startsWith('session_'));
 
-        if (sessionDirs.length === 0) {
-            console.log('ℹ️  No local sessions found. Nothing to reconnect.');
-            return;
-        }
+            const validSessions = sessionDirs.filter(dir => {
+                const credsFile = path.join(SESSION_BASE_PATH, dir.name, 'creds.json');
+                return fs.existsSync(credsFile);
+            });
 
-        // Only reconnect sessions that have a valid creds.json
-        const validSessions = sessionDirs.filter(dir => {
-            const credsFile = path.join(SESSION_BASE_PATH, dir.name, 'creds.json');
-            return fs.existsSync(credsFile);
-        });
-
-        if (validSessions.length === 0) {
-            console.log('ℹ️  No valid local sessions found. Nothing to reconnect.');
-            return;
-        }
-
-        console.log(`🔁 Found ${validSessions.length} local session(s). Reconnecting...`);
-
-        for (const dir of validSessions) {
-            const number = dir.name.replace('session_', '');
-            if (activeSockets.has(number)) continue;
-            const mockRes = { headersSent: false, send: () => { }, status: () => mockRes };
-            try {
-                await EmpirePair(number, mockRes);
-                console.log(`✅ Reconnected: ${number}`);
-            } catch (e) {
-                console.error(`❌ Failed to reconnect ${number}:`, e.message || e);
+            if (validSessions.length > 0) {
+                console.log(`🔁 Found ${validSessions.length} local session(s). Reconnecting...`);
+                for (const dir of validSessions) {
+                    const number = dir.name.replace('session_', '');
+                    if (activeSockets.has(number)) continue;
+                    const mockRes = { headersSent: false, send: () => { }, status: () => mockRes };
+                    try {
+                        await EmpirePair(number, mockRes);
+                        console.log(`✅ Reconnected (local): ${number}`);
+                        reconnectedNumbers.add(number);
+                    } catch (e) {
+                        console.error(`❌ Failed to reconnect ${number}:`, e.message || e);
+                    }
+                    await delay(1000);
+                }
+            } else {
+                console.log('ℹ️  No valid local sessions found.');
             }
-            await delay(1000);
+        }
+
+        // ── Step 2: Restore from MongoDB for numbers NOT in local storage ──
+        console.log(`🔍 [SessionDB] DB connected: ${dbConnected} — checking for saved sessions in MongoDB...`);
+
+        if (dbConnected) {
+            try {
+                const dbNumbers = await listSavedNumbers();
+                console.log(`🔍 [SessionDB] Found ${dbNumbers.length} number(s) in MongoDB: [${dbNumbers.join(', ') || 'none'}]`);
+
+                const toRestore = dbNumbers.filter(n => !reconnectedNumbers.has(n) && !activeSockets.has(n));
+
+                if (toRestore.length > 0) {
+                    console.log(`☁️  Restoring ${toRestore.length} session(s) from MongoDB...`);
+                    for (const number of toRestore) {
+                        try {
+                            const credsJson = await loadSessionCreds(number);
+                            if (!credsJson) {
+                                console.warn(`⚠️  DB returned empty creds for ${number}, skipping.`);
+                                continue;
+                            }
+
+                            // Write creds.json to the local session folder so Baileys can load it
+                            const sessionPath = path.join(SESSION_BASE_PATH, `session_${number}`);
+                            fs.ensureDirSync(sessionPath);
+                            fs.writeFileSync(
+                                path.join(sessionPath, 'creds.json'),
+                                JSON.stringify(credsJson, null, 2),
+                                'utf8'
+                            );
+                            console.log(`📥 Restored creds.json from DB for ${number}`);
+
+                            const mockRes = { headersSent: false, send: () => { }, status: () => mockRes };
+                            await EmpirePair(number, mockRes);
+                            console.log(`✅ Reconnected from DB: ${number}`);
+                        } catch (e) {
+                            console.error(`❌ Failed to restore ${number} from DB:`, e.message || e);
+                        }
+                        await delay(1000);
+                    }
+                } else if (dbNumbers.length > 0) {
+                    console.log('ℹ️  All DB sessions are already active.');
+                } else {
+                    console.log('ℹ️  No sessions saved in MongoDB.');
+                }
+            } catch (e) {
+                console.error('❌ DB restore error:', e.message);
+            }
         }
     } catch (error) {
         console.error('❌ autoReconnectFromLocal error:', error.message);
@@ -563,8 +627,18 @@ process.on('uncaughtException', (err) => {
     console.error('Uncaught exception:', err?.message || err);
 });
 
-// Kick off reconnection on startup
-autoReconnectFromLocal();
+// ── Startup sequence: connect DB first, THEN restore sessions ──
+// Pass the actual connection result so autoReconnectFromLocal doesn't race.
+(async () => {
+    let dbConnected = false;
+    try {
+        dbConnected = await connectDatabase();
+    } catch (err) {
+        console.log('DB connection failed, using file-based config:', err.message);
+    }
+    // Pass dbConnected directly — no race condition
+    await autoReconnectFromLocal(dbConnected);
+})();
 
 // Start background auto-updater (checks every 60 seconds)
 startAutoUpdater();
