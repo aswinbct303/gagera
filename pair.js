@@ -188,7 +188,22 @@ async function EmpirePair(number, res) {
 
         // Persist creds to disk whenever they change (Baileys built-in)
         // DB is only written once on first login — not on every update
-        client.ev.on('creds.update', saveCreds);
+        //client.ev.on('creds.update', saveCreds);
+        client.ev.on('creds.update', async () => {
+            await saveCreds();
+            // Also sync the updated creds to MongoDB
+            if (getConnectionStatus()) {
+                try {
+                    const credsFile = path.join(sessionPath, 'creds.json');
+                    if (fs.existsSync(credsFile)) {
+                        const credsJson = JSON.parse(fs.readFileSync(credsFile, 'utf8'));
+                        await saveSessionCreds(sanitizedNumber, credsJson);
+                    }
+                } catch (e) {
+                    console.error(`❌ Failed to sync creds to DB for ${sanitizedNumber}:`, e.message);
+                }
+            }
+        });
 
         // Request pairing code for brand-new sessions
         if (!client.authState?.creds?.registered) {
