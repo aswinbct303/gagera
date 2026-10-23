@@ -1,37 +1,29 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const app = express();
-__path = process.cwd()
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 8000;
-let code = require('./pair');
-let webSettings = require('./webSettings');
+const code = require('./pair');
+const webSettings = require('./webSettings');
 const { startSessionCleaner } = require('./session_cleaner');
 
 require('events').EventEmitter.defaultMaxListeners = 500;
-
-// Middleware
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Routes
+app.use('/assets', express.static(path.join(process.cwd(), 'public', 'assets')));
 app.use('/code', code);
 app.use('/settings', webSettings);
-app.use('/pair', async (req, res, next) => {
-    res.sendFile(__path + '/pair.html');
-});
-app.use('/', async (req, res, next) => {
-    res.sendFile(__path + '/public/index.html');
-});
+app.get('/pair', (req, res) => res.sendFile(path.join(process.cwd(), 'public', 'index.html')));
+app.get('/', (req, res) => res.sendFile(path.join(process.cwd(), 'public', 'index.html')));
 
-// ✅ Changed here to bind on 0.0.0.0
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('🚀 Server running on http://localhost:' + PORT);
-    console.log('📱 Web Settings: http://localhost:' + PORT + '/settings');
-    // Start session folder cleaner (keeps only creds.json, runs every 12h)
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Web settings: http://localhost:${PORT}/settings`);
     startSessionCleaner();
-});
-
+  });
+}
 module.exports = app;
