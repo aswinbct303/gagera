@@ -1,5 +1,186 @@
 <!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gagera — Settings</title><link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/settings.css"></head>
-<body><header class="topbar shell"><a class="brand" href="/"><span class="brand-mark">G</span><span>Gagera</span></a><nav class="nav"><a href="/">Pairing</a><a class="active" href="/settings">Settings</a></nav></header>
-<main class="shell settings-page"><section class="settings-intro"><p class="eyebrow">Workspace controls</p><h1>Settings that stay out of your way.</h1><p class="lede">Sign in with the web password sent after pairing, then tune the bot for your workflow.</p></section><section id="login" class="panel"><p class="eyebrow">Secure access</p><h2>Open your settings</h2><form id="login-form"><label for="number">WhatsApp number</label><input id="number" required inputmode="numeric" placeholder="919876543210"><label for="password">Web password</label><input id="password" required type="password" placeholder="Enter your password"><button class="button primary" type="submit">Continue <span>→</span></button><div id="login-error" class="result error" hidden></div></form></section><section id="dashboard" class="panel" hidden><div class="panel-head"><div><p class="eyebrow">Configuration</p><h2>Bot preferences</h2></div><button class="button primary compact" id="logout" type="button">Log out</button></div><form id="settings-form"><div id="settings-grid" class="settings-grid"></div><button class="button primary" type="submit">Save changes <span>→</span></button><div id="save-result" class="result" hidden></div></form></section></main><script src="/assets/settings.js" defer></script></body></html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f16">
+  <meta name="description" content="Manage your Gagera bot configuration, status automation, and privacy settings.">
+  <title>Gagera — Workspace Settings</title>
+  
+  <!-- Preconnect Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/settings.css">
+  
+  <!-- Instant Theme Initializer to prevent flash -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('gagera-theme');
+      const theme = (saved === 'dark' || saved === 'light') ? saved : 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="topbar shell">
+    <a class="brand" href="/" aria-label="Gagera home">
+      <span class="brand-mark">G</span>
+      <div class="brand-text">
+        <span class="brand-title">Gagera</span>
+        <span class="brand-badge">Automation Engine</span>
+      </div>
+    </a>
+
+    <div class="nav-cluster">
+      <nav class="nav" aria-label="Primary">
+        <a href="/" id="nav-pairing">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span class="nav-label">Pairing</span>
+        </a>
+        <a class="active" href="/settings" id="nav-settings" aria-current="page">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span class="nav-label">Settings</span>
+        </a>
+        <a href="https://github.com/aswinbct303/gagera" target="_blank" rel="noopener noreferrer" id="nav-docs">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <span class="nav-label">Docs</span>
+        </a>
+      </nav>
+
+      <!-- Theme Switcher -->
+      <button class="theme-toggle" type="button" aria-label="Toggle theme">
+        <span class="theme-toggle-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Settings Page Content -->
+  <main class="shell settings-page">
+    <section class="settings-intro">
+      <div class="badge-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Workspace Configuration</span>
+      </div>
+      <p class="eyebrow">Session Management</p>
+      <h1>Settings that <span class="gradient-text">stay out of your way.</span></h1>
+      <p class="lede">Sign in with the web password sent to your WhatsApp on pairing, then fine-tune your bot's behavior in real time.</p>
+    </section>
+
+    <!-- 1. Authentication Panel -->
+    <section id="login" class="panel login-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Secure Login
+          </p>
+          <h2>Access Your Settings</h2>
+        </div>
+      </div>
+
+      <form id="login-form">
+        <div class="login-form-group">
+          <label for="number">Connected WhatsApp Number</label>
+          <div class="input-group">
+            <span class="prefix">+</span>
+            <input id="number" required inputmode="numeric" placeholder="919876543210" autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="login-form-group">
+          <label for="password">Web Access Password</label>
+          <div class="input-group password-wrapper">
+            <input id="password" required type="password" placeholder="Enter your 8-digit password" autocomplete="current-password">
+            <button type="button" class="toggle-password-btn" id="toggle-pwd-btn" aria-label="Toggle password visibility">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="button primary" type="submit" id="login-btn">
+          <span>Authenticate Session</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+
+        <div id="login-error" class="result error" hidden aria-live="polite"></div>
+
+        <div class="login-helper-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div>
+            <strong>Need your password?</strong>
+            <span>Your web password is sent directly to your connected WhatsApp chat upon successful pairing. If you haven't paired yet, visit the <a href="/" style="color:var(--brand-light);text-decoration:underline;">Pairing Portal</a>.</span>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2. Dashboard Panel -->
+    <section id="dashboard" class="panel" hidden>
+      <!-- Session Bar -->
+      <div class="dashboard-user-card">
+        <div class="user-identity">
+          <div class="user-avatar" id="avatar-initial">#</div>
+          <div class="user-details">
+            <span class="user-phone" id="display-number">+1 234 567 8900</span>
+            <div class="user-session-state">
+              <span class="status-dot"></span>
+              <span>Session Authenticated (Auto-Sync)</span>
+            </div>
+          </div>
+        </div>
+        <button class="button secondary compact" id="logout" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Log out
+        </button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-tabs" id="category-tabs" role="tablist" aria-label="Settings Categories">
+        <button type="button" class="cat-tab active" data-category="all" role="tab" aria-selected="true">All Settings</button>
+        <button type="button" class="cat-tab" data-category="status" role="tab" aria-selected="false">Status & Stories</button>
+        <button type="button" class="cat-tab" data-category="privacy" role="tab" aria-selected="false">Privacy & Calls</button>
+        <button type="button" class="cat-tab" data-category="bot" role="tab" aria-selected="false">Bot Behavior</button>
+      </div>
+
+      <!-- Settings Form -->
+      <form id="settings-form">
+        <div id="settings-grid" class="settings-grid"></div>
+
+        <div class="action-bar">
+          <div class="action-bar-status" id="save-status">
+            <span>Configure preferences above and click Save.</span>
+          </div>
+          <div class="action-bar-btns">
+            <button class="button primary compact" type="submit" id="save-btn">
+              <span>Save Changes</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="save-result" class="result" hidden aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="shell footer">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-weight:700;color:var(--text-main);">Gagera Engine</span>
+      <span>•</span>
+      <span>Settings Portal</span>
+    </div>
+    <span>Changes apply immediately and sync with your active WhatsApp session.</span>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/assets/theme.js"></script>
+  <script src="/assets/settings.js" defer></script>
+</body>
+</html>
